@@ -3,6 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:naftal/create_operation.dart';
+import 'package:naftal/data/Localisation.dart';
+import 'package:naftal/data/User.dart';
+import 'package:naftal/history.dart';
 
 void main() => runApp(MyApp());
 
@@ -20,14 +24,39 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+ 
   }
 
 
+  bool check_format(int type,String value){
+    print(value);
 
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> scanBarcodeNormal() async {
+    if(type == 0){
+      // Expression réguliére pour les localisations
+
+      final localisation = RegExp(r'^[a-zA-Z]{2}[0-9]{14}$');
+
+
+      return localisation.hasMatch(value);
+
+    }else if(type == 1){
+      // Expression réguliére pour les bien Matériaux
+
+      final BienMateriel = RegExp(r'^[a-zA-Z]{1}[0-9]{14}$');
+
+
+      return BienMateriel.hasMatch(value);
+
+
+    }
+    return false;
+
+  }
+
+  Future<void> scanBarcodeNormal(BuildContext context) async {
+
+    
     String barcodeScanRes;
-    // Platform messages may fail, so we use a try/catch PlatformException.
     try {
       barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
           '#ff6666', 'Cancel', true, ScanMode.BARCODE);
@@ -36,21 +65,86 @@ class _MyAppState extends State<MyApp> {
       barcodeScanRes = 'Failed to get platform version.';
     }
 
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
     if (!mounted) return;
 
     setState(() {
       _scanBarcode = barcodeScanRes;
     });
-    print(_scanBarcode);
+  
+
+  // if(check_format(1, _scanBarcode) == false){
+
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //     SnackBar(
+      //       content:
+      //        Row(
+      //          mainAxisAlignment: MainAxisAlignment.start,
+      //          children: [
+      //            Icon(Icons.info,color: Colors.white,size: 25),
+      //            Text("Opération échouée objet non valide",
+      //       style: TextStyle(fontSize: 17.0),
+      //       ),
+      //          ],
+      //        ),
+      //       backgroundColor: Colors.red,
+      //     )
+      // );
+
+        
+  
+  // }
+
+    User user =  await User.auth();
+    Localisation loc =  Localisation(_scanBarcode, "Bureau", DateTime.now().toIso8601String(), 0, user.matricule);
+  
+    
+
+     loc.Store_Localisation().then((exist){
+        if(exist == true){
+            
+       Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>  Create_Operation(),
+                            settings:RouteSettings(
+                              arguments:loc )
+                            ),
+                          
+                        );
+
+         
+        }else{
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+             Row(
+               mainAxisAlignment: MainAxisAlignment.start,
+               children: [
+                 Icon(Icons.info,color: Colors.white,size: 25),
+                 Text("Localisation existe déjà",
+            style: TextStyle(fontSize: 17.0),
+            ),
+               ],
+             ),
+            backgroundColor: Colors.red,
+          )
+      );
+
+        }
+
+
+     });
+
+   
+  
+
+
+
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        home: Scaffold(
+    return Scaffold(
             appBar: AppBar(title: const Text('Naftal Scanner',style: TextStyle(
               color: yellow
            
@@ -103,10 +197,10 @@ class _MyAppState extends State<MyApp> {
                               ],
                             ),
                             child: TextButton(
-                              onPressed: () => scanBarcodeNormal(),
+                              onPressed: () => scanBarcodeNormal(context),
                               child: Column(
                                   children: [
-                                     Icon(Icons.camera_alt,
+                                     Icon(Icons.add,
                                      size: 30,
                                 color: blue,
                                 ),
@@ -154,7 +248,9 @@ class _MyAppState extends State<MyApp> {
                                 )
                                   ],
                                 ),
-                                onPressed: () => scanBarcodeNormal(),
+                                onPressed: (){
+                                    
+                                },
                                ),
                           ),
                           Container(
@@ -185,7 +281,13 @@ class _MyAppState extends State<MyApp> {
 
                                 )
                                 ]),
-                                onPressed: () => scanBarcodeNormal(),
+                                onPressed: () =>{
+
+                                        Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) =>  History()),
+                                  )
+                                },
                             ),
                           ),
                           Container(
@@ -216,7 +318,7 @@ class _MyAppState extends State<MyApp> {
                                 ),
                                 )
                                 ]),
-                                onPressed: () => scanBarcodeNormal(),
+                                onPressed: () => scanBarcodeNormal(context),
                                ),
                           ),
                       
@@ -225,7 +327,7 @@ class _MyAppState extends State<MyApp> {
                  
                   
                       );
-            })));
+            }));
   }
 }
 // ignore_for_file: prefer_const_constructors
