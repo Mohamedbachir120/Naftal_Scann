@@ -1,25 +1,26 @@
-import 'dart:async';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:naftal/data/Bien_materiel.dart';
 import 'package:naftal/data/Localisation.dart';
-import 'package:naftal/detail_bien.dart';
-import 'package:naftal/detail_operation.dart';
-import 'package:naftal/history.dart';
 
-void main() => runApp(Create_Bien());
+import 'package:naftal/detail_bien.dart';
+import 'package:naftal/main.dart';
+
+
 
 class Create_Bien extends StatefulWidget {
 
+  final Localisation localisation;
+   const Create_Bien({Key? key, required this.localisation}) : super(key: key);
+
   @override
-  _Create_BienState createState() => _Create_BienState();
+  _Create_BienState createState() => _Create_BienState(localisation:this.localisation);
 }
 
 class _Create_BienState extends State<Create_Bien> {
-  String _scanBarcode = '';
+  _Create_BienState({required this.localisation});
+  final Localisation localisation;
+
   late Bien_materiel bien;
   TextEditingController nomController =  TextEditingController();
 
@@ -104,131 +105,22 @@ class _Create_BienState extends State<Create_Bien> {
                                    ),
                             ),
                               Container(
-                              margin: EdgeInsets.symmetric(
-                                vertical: 5,
-                                horizontal: 10
-                              ), 
-                              
-                             decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: new BorderRadius.circular(10),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.2),
-                                  spreadRadius: 0.5,
-                                  blurRadius: 0.5,
-                                  offset: Offset(0, 0), // changes position of shadow
-                                ),
-                              ],
+                                   margin: EdgeInsets.all(10),
+                                   width: double.infinity,
+                                  child:
+                                   Row(
+                                     children: [
+                                       Icon(Icons.emoji_objects),
+                                       SizedBox(width: 10,),
+                                       Text('Etat: ${bien.code_bar}',
+                                       style: TextStyle(
+                                         fontSize: 16
+                                       ),
+                                       ),
+                                     ],
+                                   ),
                             ),
-                            child:  TextFormField(
-                              controller: nomController,
-                              decoration:  InputDecoration(
-                                prefixIcon: Icon(Icons.edit,color: Colors.black,),
-                                labelText: "Nom",
-                                 labelStyle: TextStyle(
-                                  color:  Colors.black
-                                ),
-                                focusedBorder: InputBorder.none,
-                                enabledBorder: InputBorder.none,
-                                fillColor: Colors.white,
-                                border:  OutlineInputBorder(
-                                  borderRadius:  BorderRadius.circular(10.0),
-                                ),
-                                //fillColor: Colors.green
-                              ),
-                            
-                              keyboardType: TextInputType.text,
-                              style:  TextStyle(
-                                fontFamily: "Poppins",
-                              
-                              ),
-                            ),
-                          ),
-
-                             Container(
-                            margin: EdgeInsets.all(10),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                      children: [
-                                          Icon(Icons.rate_review),
-                                          SizedBox(
-                                            width: 10,
-                                          ),
-                                         Text("Etat du bien matériel",
-                                          style: TextStyle(
-                                          fontSize: 16,
-                                  ),)
-                                      ],
-                                  )
-                                 ,
-                                        
-                                      ListTile(
-                                        title: Text(
-                                          'Mauvais',
-                                        ),
-                                        leading: Radio(
-                                          value: 1,
-                                          groupValue: _value,
-                                          onChanged:  (val){
-
-                                            setState(() {
-                                              
-                                              _value = val as int;
-                                              print(_value);
-
-                                            });
-                                              
-
-                                          } ,
-                                        ),
-                                      ),
-                                         ListTile(
-                                        title: Text(
-                                          'Moyen',
-                                        ),
-                                        leading: Radio(
-                                          value: 2,
-                                          groupValue: _value,
-                                          onChanged:  (val){
-
-                                            setState(() {
-                                              
-                                              _value = val as int;
-                                              print(_value);
-                                            });
-                                              
-
-                                          } ,
-                                        ),
-                                      ),
-                                         ListTile(
-                                        title: Text(
-                                          'Bon',
-                                        ),
-                                        leading: Radio(
-                                          value: 3,
-                                          groupValue: _value,
-                                          onChanged:  (val){
-
-                                            setState(() {
-                                              
-                                              _value = val as int;
-                                              print(_value);
-
-                                            });
-                                              
-
-                                          } ,
-                                        ),
-                                      ),
-                                ],
-
-                            ),
-
-                          ),
+                          
                           Container(
                             margin: EdgeInsets.all(10),
                             child: Row(
@@ -244,10 +136,9 @@ class _Create_BienState extends State<Create_Bien> {
                                   label: Text("Valider"),
                                   onPressed: ()async{
 
-                                    if(nomController.text.trim().length > 0){
+                                   
 
-                                      bien.designation = nomController.text;
-                                      bien.etat = _value;
+                                      bien.etat = MODE_SCAN;
 
                                       bool stored =  await bien.Store_Bien();
 
@@ -255,26 +146,18 @@ class _Create_BienState extends State<Create_Bien> {
 
                                               Navigator.push(
                                                   context,
-                                                  MaterialPageRoute(builder: (context) =>  Detail_Bien(),
-                                                  settings: RouteSettings(arguments: bien)
+                                                  MaterialPageRoute(builder: (context) =>  Detail_Bien(bien_materiel: bien,localisation:localisation ,),
                                                   ),
                                                 );
                                       }else{
-
-                                        print("error");
-                                      }
-
-
-                                    }else{
-
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        ScaffoldMessenger.of(context).showSnackBar(
                                           SnackBar(
                                             content:
                                             Row(
                                               mainAxisAlignment: MainAxisAlignment.start,
                                               children: [
                                                 Icon(Icons.info,color: Colors.white,size: 25),
-                                                Text("Veuillez remplir tous les champs",
+                                                Text("une erreur est survenue veuillez réessayer",
                                             style: TextStyle(fontSize: 17.0),
                                             ),
                                               ],
@@ -282,7 +165,10 @@ class _Create_BienState extends State<Create_Bien> {
                                             backgroundColor: Colors.red,
                                           )
                                       );
-                                    }
+                                      }
+
+
+                                    
                                     
 
                                   },

@@ -5,16 +5,15 @@ class User {
    String ?nom;
    String ?prenom;
    String ?email;
-   String ?mot_de_passe;
+   String ?token; 
 
-
-   User (String matricule,String nom,String prenom,String email,String mot_de_passe){
+   User (String matricule,String nom,String prenom,String email,String ?token){
 
      this.matricule = matricule;
      this.nom = nom;
      this.prenom = prenom;
      this.email = email;
-     this.mot_de_passe = mot_de_passe;
+     this.token = token;
    }
 
    Map<String, dynamic> toMap() {
@@ -23,7 +22,7 @@ class User {
       'nom': nom,
       'prenom': prenom,
       'email': email,
-      'mot_de_passe':mot_de_passe
+      'token': token
     };
   }
 
@@ -44,7 +43,7 @@ class User {
                   maps[i]['nom'] ,
                   maps[i]['prenom'] ,
                   maps[i]['email'] ,
-                  maps[i]['mot_de_passe'] ,
+                  maps[i]['token'] ,
                 );
           });
           
@@ -77,7 +76,7 @@ class User {
                   maps[i]['nom'] ,
                   maps[i]['prenom'] ,
                   maps[i]['email'] ,
-                  maps[i]['mot_de_passe'] ,
+                  maps[i]['token'] ,
                 );
           });
           

@@ -37,6 +37,11 @@ dependencies:
   cupertino_icons: ^1.0.2
   flutter_barcode_scanner: ^2.0.0
   sqflite: ^2.0.2
+  http: ^0.13.4
+  dio: ^4.0.4
+  connectivity_plus: ^2.2.1
+  salomon_bottom_bar: ^3.3.0
+
 
 dev_dependencies:
   flutter_launcher_icons: "^0.9.2"

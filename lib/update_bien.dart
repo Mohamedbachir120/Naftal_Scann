@@ -1,36 +1,34 @@
-import 'dart:async';
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:naftal/data/Bien_materiel.dart';
 import 'package:naftal/data/Localisation.dart';
 import 'package:naftal/detail_bien.dart';
-import 'package:naftal/detail_operation.dart';
-import 'package:naftal/history.dart';
+import 'package:naftal/main.dart';
+
 
 
 class Update_Bien extends StatefulWidget {
 
-    const Update_Bien({Key? key, required this.bien}) : super(key: key);
+    const Update_Bien({Key? key, required this.bien,required this.localisation}) : super(key: key);
     final Bien_materiel bien;
+    final Localisation localisation;
 
   @override
-  _Update_BienState createState() => _Update_BienState(bien: this.bien);
+  _Update_BienState createState() => _Update_BienState(bien: this.bien,localisation: this.localisation);
 }
 
 class _Update_BienState extends State<Update_Bien> {
-     _Update_BienState({ required this.bien}) ;
+     _Update_BienState({ required this.bien,required this.localisation}) ;
 
     final Bien_materiel bien;
+    final Localisation localisation;
+
 
 
   TextEditingController nomController =  TextEditingController();
 
    static const Color  blue = Color.fromRGBO(0, 73, 132, 1);
    static const Color yellow   =  Color.fromRGBO(255, 227,24, 1);
-  int _value= 2;
+  int _value= MODE_SCAN;
 
   
   @override
@@ -38,7 +36,6 @@ class _Update_BienState extends State<Update_Bien> {
     super.initState();
     setState(() {
       _value = bien.etat;
-      nomController.text = bien.designation.toString();
     });
 
  
@@ -111,51 +108,7 @@ class _Update_BienState extends State<Update_Bien> {
                                      ],
                                    ),
                             ),
-                              Container(
-                              margin: EdgeInsets.symmetric(
-                                vertical: 5,
-                                horizontal: 10
-                              ), 
-                              
-                             decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: new BorderRadius.circular(10),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.2),
-                                  spreadRadius: 0.5,
-                                  blurRadius: 0.5,
-                                  offset: Offset(0, 0), // changes position of shadow
-                                ),
-                              ],
-                            ),
-                            child:  TextFormField(
-                              
-                              controller: nomController,
-                              decoration:  InputDecoration(
-                                prefixIcon: Icon(Icons.edit,color: Colors.black,),
-                                labelText: "Nom",
-                                 labelStyle: TextStyle(
-                                  color:  Colors.black
-                                ),
-                                focusedBorder: InputBorder.none,
-                                enabledBorder: InputBorder.none,
-                                fillColor: Colors.white,
-                                border:  OutlineInputBorder(
-                                  borderRadius:  BorderRadius.circular(10.0),
-                                ),
-                                //fillColor: Colors.green
-                              ),
-                            
-                              keyboardType: TextInputType.text,
-                              style:  TextStyle(
-                                fontFamily: "Poppins",
-                              
-                              ),
-                            ),
-                          ),
-
-                             Container(
+                    Container(
                             margin: EdgeInsets.all(10),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,7 +139,7 @@ class _Update_BienState extends State<Update_Bien> {
                                             setState(() {
                                               
                                               _value = val as int;
-                                              print(_value);
+                                             
 
                                             });
                                               
@@ -206,7 +159,7 @@ class _Update_BienState extends State<Update_Bien> {
                                             setState(() {
                                               
                                               _value = val as int;
-                                              print(_value);
+                                             
                                             });
                                               
 
@@ -225,7 +178,7 @@ class _Update_BienState extends State<Update_Bien> {
                                             setState(() {
                                               
                                               _value = val as int;
-                                              print(_value);
+                                           
 
                                             });
                                               
@@ -253,10 +206,13 @@ class _Update_BienState extends State<Update_Bien> {
                                   label: Text("Valider"),
                                   onPressed: ()async{
 
-                                    if(nomController.text.trim().length > 0){
+                                   
 
-                                      bien.designation = nomController.text;
                                       bien.etat = _value;
+
+                                      setState(() {
+                                        MODE_SCAN = bien.etat;
+                                      });
 
                                       bool stored =  await bien.Store_Bien_Soft();
 
@@ -264,17 +220,10 @@ class _Update_BienState extends State<Update_Bien> {
 
                                               Navigator.push(
                                                   context,
-                                                  MaterialPageRoute(builder: (context) =>  Detail_Bien(),
-                                                  settings: RouteSettings(arguments: bien)
+                                                  MaterialPageRoute(builder: (context) =>  Detail_Bien(bien_materiel: bien,localisation:localisation ,),
                                                   ),
                                                 );
                                       }else{
-
-                                        print("error");
-                                      }
-
-
-                                    }else{
 
                                       ScaffoldMessenger.of(context).showSnackBar(
                                           SnackBar(
@@ -283,7 +232,7 @@ class _Update_BienState extends State<Update_Bien> {
                                               mainAxisAlignment: MainAxisAlignment.start,
                                               children: [
                                                 Icon(Icons.info,color: Colors.white,size: 25),
-                                                Text("Veuillez remplir tous les champs",
+                                                Text("une erreur est survenue veuillez réessayer",
                                             style: TextStyle(fontSize: 17.0),
                                             ),
                                               ],
@@ -291,7 +240,10 @@ class _Update_BienState extends State<Update_Bien> {
                                             backgroundColor: Colors.red,
                                           )
                                       );
-                                    }
+                                      }
+
+
+                                   
                                     
 
                                   },

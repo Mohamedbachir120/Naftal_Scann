@@ -1,11 +1,6 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:naftal/data/Localisation.dart';
 import 'package:naftal/detail_operation.dart';
-import 'package:naftal/history.dart';
 
 void main() => runApp(Create_Operation());
 
@@ -16,7 +11,6 @@ class Create_Operation extends StatefulWidget {
 }
 
 class _Create_OperationState extends State<Create_Operation> {
-  String _scanBarcode = '';
   late Localisation loc;
   TextEditingController nomController =  TextEditingController();
 
@@ -57,58 +51,10 @@ class _Create_OperationState extends State<Create_Operation> {
 
   }
 
-  Future<void> scanBarcodeNormal(BuildContext context) async {
-
-    
-    String barcodeScanRes;
-    try {
-      barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
-          '#ff6666', 'Cancel', true, ScanMode.BARCODE);
-      print(barcodeScanRes);
-    } on PlatformException {
-      barcodeScanRes = 'Failed to get platform version.';
-    }
-
-    if (!mounted) return;
-
-    setState(() {
-      _scanBarcode = barcodeScanRes;
-    });
-  
-
-  // if(check_format(1, _scanBarcode) == false){
-
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //     SnackBar(
-      //       content:
-      //        Row(
-      //          mainAxisAlignment: MainAxisAlignment.start,
-      //          children: [
-      //            Icon(Icons.info,color: Colors.white,size: 25),
-      //            Text("Opération échouée objet non valide",
-      //       style: TextStyle(fontSize: 17.0),
-      //       ),
-      //          ],
-      //        ),
-      //       backgroundColor: Colors.red,
-      //     )
-      // );
-
-        
-  
-  // }
-
-
-  
-
-
-
-  }
-
+ 
   @override
   Widget build(BuildContext context) {
     loc = ModalRoute.of(context)!.settings.arguments as Localisation;
-    int _value = 1;
 
     return Scaffold(
             appBar: AppBar(title: const Text('Naftal Scanner',style: TextStyle(
@@ -171,49 +117,7 @@ class _Create_OperationState extends State<Create_Operation> {
                                    ),
                             ),
 
-                             Container(
-                              margin: EdgeInsets.symmetric(
-                                vertical: 5,
-                                horizontal: 10
-                              ), 
-                              
-                             decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: new BorderRadius.circular(10),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.2),
-                                  spreadRadius: 0.5,
-                                  blurRadius: 0.5,
-                                  offset: Offset(0, 0), // changes position of shadow
-                                ),
-                              ],
-                            ),
-                            child:  TextFormField(
-                              controller: nomController,
-                              decoration:  InputDecoration(
-                                prefixIcon: Icon(Icons.edit,color: Colors.black,),
-                                labelText: "Nom",
-                                 labelStyle: TextStyle(
-                                  color:  Colors.black
-                                ),
-                                focusedBorder: InputBorder.none,
-                                enabledBorder: InputBorder.none,
-                                fillColor: Colors.white,
-                                border:  OutlineInputBorder(
-                                  borderRadius:  BorderRadius.circular(10.0),
-                                ),
-                                //fillColor: Colors.green
-                              ),
-                            
-                              keyboardType: TextInputType.text,
-                              style:  TextStyle(
-                                fontFamily: "Poppins",
-                              
-                              ),
-                            ),
-                          ),
-                        
+                             
                           Container(
                             margin: EdgeInsets.all(10),
                             child: Row(
@@ -229,36 +133,26 @@ class _Create_OperationState extends State<Create_Operation> {
                                   label: Text("Valider"),
                                   onPressed: ()async{
 
-                                    if(nomController.text.trim().length > 0){
-
-                                      loc.designation = nomController.text;
-
+                                
                                       bool stored =  await loc.Soft_Store_Localisation();
 
                                       if(stored == true){
 
-                                              Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(builder: (context) =>  Detail_Operation(),
-                                                  settings: RouteSettings(arguments: loc)
-                                                  ),
-                                                );
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(builder: (context) =>  Detail_Operation(localisation: loc,),
+                                            ),
+                                          );
                                       }else{
 
-                                        print("error");
-                                      }
-
-
-                                    }else{
-
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                       ScaffoldMessenger.of(context).showSnackBar(
                                           SnackBar(
                                             content:
                                             Row(
                                               mainAxisAlignment: MainAxisAlignment.start,
                                               children: [
                                                 Icon(Icons.info,color: Colors.white,size: 25),
-                                                Text("Veuillez remplir tous les champs",
+                                                Text("une erreur est survenue veuillez réessayer",
                                             style: TextStyle(fontSize: 17.0),
                                             ),
                                               ],
@@ -266,7 +160,10 @@ class _Create_OperationState extends State<Create_Operation> {
                                             backgroundColor: Colors.red,
                                           )
                                       );
-                                    }
+                                      }
+
+
+                                    
                                     
 
                                   },
