@@ -3,242 +3,215 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
-import 'dart:convert';
-import 'User.dart';
-class Bien_materiel{
 
-  late final  String code_bar;
-  String ?date_scan;
-  
+class Bien_materiel {
   /*
-  état 1 = mauvais 
-  état 2 = moyen 
-  état 3 = Bon 
+  état 1 = Bon 
+  état 2 = Hors Service 
+  état 3 = A réformer 
 
-  */ 
+  */
+
+  late final String code_bar;
 
   int etat = 3;
+  String? date_scan;
   int stockage = 0;
-  late String code_localisation ;
+  late String code_localisation;
+  late String CODE_COP;
+  late String matricule;
 
-  Bien_materiel(String code_bar,int etat,String date_scan,String code_localisation,int stockage){
-    this.code_bar = code_bar;
-    this.etat = etat;
-    this.date_scan = date_scan;
-    this.code_localisation =  code_localisation;
-    this.stockage = stockage;
+  Bien_materiel(this.code_bar, this.etat, this.date_scan,
+      this.code_localisation, this.stockage, this.CODE_COP, this.matricule);
 
-  }
-
-    Map<String, dynamic> toMap() {
+  Map<String, dynamic> toMap() {
     return {
-      'code_bar': code_bar,
-      'etat': etat,
-      'date_scan': date_scan,
-      'code_localisation':code_localisation,
-      'stockage':stockage
+      "code_bar": code_bar,
+      "code_localisation": code_localisation,
+      "CODE_COP": CODE_COP,
+      "etat": etat,
+      "date_scan": date_scan,
+      "matricule": matricule,
+      "stockage": stockage
     };
   }
-  Future<bool> local_check() async{
 
-    final database = openDatabase(
-          join(await getDatabasesPath(), 'naftal_scan.db'));
-          final db = await database;
+  Future<bool> local_check() async {
+    final database = openDatabase(join(await getDatabasesPath(), DBNAME));
+    final db = await database;
 
-            final List<Map<String, dynamic>> maps = await db.query("Bien_materiel where code_bar  = '$code_bar' ");
+    final List<Map<String, dynamic>> maps = await db.query(
+        "Bien_materiel where code_bar  = '$code_bar' and code_localisation ='$code_localisation' ");
 
-       
-
-        print(maps.length);
-        return (maps.length > 0);
+    return (maps.length > 0);
   }
-  Future<bool> exists() async{
 
+  Future<bool> net_check() async {
+    var connectivityResult = await (Connectivity().checkConnectivity());
 
-      var connectivityResult = await (Connectivity().checkConnectivity());
-      
-        if (connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi) {
-          try {
-            
-          
-                  User user  =  await User.auth();
-                  var dio = Dio();
+    if (connectivityResult == ConnectivityResult.mobile ||
+        connectivityResult == ConnectivityResult.wifi) {
+      var dio = Dio();
 
-                  final response = await dio.get('${IP_ADDRESS}check_bien',
-                  queryParameters: {"token":user.token,"codeBar":this.code_bar});
-                  var data = jsonDecode(response.data);
-
-
-                 var val  =   (data == true) ?  true: await local_check();
-                 return val;
-          
-          } 
-          on Dio {
-
-            return false;
-
-          }
-        }
-        else{
-
-           return await local_check();
-
-
-        
-        }
-
-
+      final response =
+          await dio.post('${IP_ADDRESS}existeBien', data: this.toJson());
+      if (response.toString() == "true") {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
   }
-  String get_state(){
-    switch(this.etat){
-      case 1: return "Bon";
-      case 2: return "Hors service";
-      case 3: return "A réformer";
 
+  Future<bool> exists() async {
+    bool local = await local_check();
+    bool net = await net_check();
+
+    return local || net;
+  }
+
+  String get_state() {
+    switch (this.etat) {
+      case 1:
+        return "Bon";
+      case 2:
+        return "Hors service";
+      case 3:
+        return "A réformer";
     }
 
     return "";
-
   }
-  Store_Bien() async{
 
+  Future<bool> Store_Bien() async {
+    final database = openDatabase(join(await getDatabasesPath(), DBNAME));
+    final db = await database;
+
+    var connectivityResult = await (Connectivity().checkConnectivity());
+
+    if (connectivityResult == ConnectivityResult.mobile ||
+        connectivityResult == ConnectivityResult.wifi) {
       try {
+        var dio = Dio();
 
-          
-         final database = openDatabase(
-         join(await getDatabasesPath(), 'naftal_scan.db'));
-         final db = await database;
-           var connectivityResult = await (Connectivity().checkConnectivity());
+        final response =
+            await dio.post('${IP_ADDRESS}create_bien', data: this.toJson());
 
-
-         if (connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi) {
-
-           try {
-             
-           
-          User user  =  await User.auth();
-
-          var dio = Dio();
-
-          final response = await dio.get('${IP_ADDRESS}store_bien',
-          queryParameters: {
-          "token":user.token,
-          "codeBar":this.code_bar,
-          "etat":this.etat,
-          "operation_codeBar":this.code_localisation
-          });
-
-          var data = jsonDecode(response.data);
-          if(data == "true"){
-            this.stockage = 1;
-
-          }
-           
-             db.insert('Bien_materiel', this.toMap(),conflictAlgorithm: ConflictAlgorithm.replace);
-            
-
-            return true;
-              
-
-                  
-          } 
-          on DioError{
-            return false ;
-
-          } 
-
-
-
-        }else{
-
-              db.insert('Bien_materiel', this.toMap(),conflictAlgorithm: ConflictAlgorithm.replace);
-            return true;
-
+        if (response == true) {
+          this.stockage = 1;
         }
-    
+        this.stockage = 1;
+        db.insert('Bien_materiel', this.toMap(),
+            conflictAlgorithm: ConflictAlgorithm.replace);
 
-
-
-
-         
-
-      }
-       catch (e) {
+        return true;
+      } on DioError {
         return false;
       }
+    } else {
+      await db.insert('Bien_materiel', this.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.replace);
+      return true;
+    }
   }
-   Store_Bien_Soft() async{
 
-      try {
+  Store_Bien_Soft() async {
+    final database = openDatabase(join(await getDatabasesPath(), DBNAME));
+    final db = await database;
 
-         final database = openDatabase(
-         join(await getDatabasesPath(), 'naftal_scan.db'));
-         final db = await database;
-           if(this.stockage == 0){
-
-        
-    
-         
-
-              db.rawUpdate('UPDATE Bien_materiel SET etat = ${MODE_SCAN} where code_bar = \'${this.code_bar}\' ');
-            return true;
-          }
-          else{
-            var connectivityResult = await (Connectivity().checkConnectivity());
-            if (connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi) {
-
-            try {
-              
-              
-            User user  =  await User.auth();
+    try {
+      if (this.stockage == 0) {
+        db.rawUpdate(
+            'UPDATE Bien_materiel SET etat = ${MODE_SCAN} where code_bar = \'${this.code_bar}\' ');
+        return true;
+      } else {
+        var connectivityResult = await (Connectivity().checkConnectivity());
+        if (connectivityResult == ConnectivityResult.mobile ||
+            connectivityResult == ConnectivityResult.wifi) {
+          try {
             var dio = Dio();
-            
 
-            final response = await dio.get('${IP_ADDRESS}update_bien',
-            queryParameters: {
-            "token":user.token,
-            "codeBar":this.code_bar,
-            "etat":this.etat,
-            });
-            var data = jsonDecode(response.data);
-            
-            if(data == "true"){
-              
-              db.rawUpdate('UPDATE Bien_materiel SET etat = ${MODE_SCAN} where code_bar = \'${this.code_bar}\' ');
-            
+            final response =
+                await dio.post('${IP_ADDRESS}create_bien', data: this.toJson());
 
-            return true;
-            }else{
-
-                return false;
-
+            if (response.toString() == "true") {
+              db.rawUpdate(
+                  'UPDATE Bien_materiel SET etat = ${MODE_SCAN} where code_bar = \'${this.code_bar}\' ');
+              return true;
+            } else {
+              return false;
             }
-             } 
-             on DioError {
-               return false;
-            }
-            
-
-              
-
-         
-
-
-
-
-        }
-
-
-
+          } on DioError {
+            return false;
           }
+        } else {
+          db.rawUpdate(
+              'UPDATE Bien_materiel SET etat = ${MODE_SCAN} where code_bar = \'${this.code_bar}\' ');
+          return true;
+        }
       }
-       catch (e) {
-        return false;
-      }
+    } catch (e) {
+      return false;
+    }
   }
 
+  Map<String, dynamic> toJson() => {
+        "code_bar": code_bar,
+        "codelocalisation": code_localisation,
+        "code_cop": CODE_COP,
+        "etat": etat,
+        "date_scan": date_scan,
+        "matricule": matricule,
+        "stockage": stockage
+      };
+  static Future<List<Bien_materiel>> history() async {
+    final database = openDatabase(join(await getDatabasesPath(), DBNAME));
+    final db = await database;
 
+    final List<Map<String, dynamic>> maps = await db.query("Bien_materiel");
 
+    return List.generate(maps.length, (i) {
+      return Bien_materiel(
+        maps[i]["code_bar"],
+        maps[i]["etat"],
+        maps[i]["date_scan"],
+        maps[i]["code_localisation"],
+        maps[i]["stockage"],
+        maps[i]["CODE_COP"],
+        maps[i]["matricule"],
+      );
+    });
+  }
 
-  
+  static Future<List<Bien_materiel>> synchonized_objects() async {
+    final database = openDatabase(join(await getDatabasesPath(), DBNAME));
+    final db = await database;
+
+    final List<Map<String, dynamic>> maps =
+        await db.query("Bien_materiel where stockage  = 0 ");
+
+    return List.generate(maps.length, (i) {
+      return Bien_materiel(
+        maps[i]["code_bar"],
+        maps[i]["etat"],
+        maps[i]["date_scan"],
+        maps[i]["code_localisation"],
+        maps[i]["stockage"],
+        maps[i]["CODE_COP"],
+        maps[i]["matricule"],
+      );
+    });
+  }
+
+  String toString() {
+    return '''{ "code_bar": "$code_bar",
+            "codelocalisation": "$code_localisation",
+            "code_cop": "$CODE_COP",
+            "etat": $etat,
+            "date_scan": "$date_scan",
+            "matricule": "$matricule",
+            "stockage": $stockage }''';
+  }
 }

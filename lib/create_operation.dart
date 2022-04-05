@@ -27,7 +27,6 @@ class _Create_OperationState extends State<Create_Operation> {
 
 
   bool check_format(int type,String value){
-    print(value);
 
     if(type == 0){
       // Expression réguliére pour les localisations
@@ -134,7 +133,7 @@ class _Create_OperationState extends State<Create_Operation> {
                                   onPressed: ()async{
 
                                 
-                                      bool stored =  await loc.Soft_Store_Localisation();
+                                      bool stored =  await loc.exists();
 
                                       if(stored == true){
 

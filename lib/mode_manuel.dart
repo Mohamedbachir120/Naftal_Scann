@@ -1,12 +1,9 @@
 
 import 'package:flutter/material.dart';
-import 'package:naftal/data/Bien_materiel.dart';
 import 'package:naftal/data/Localisation.dart';
 import 'package:naftal/data/User.dart';
 
-import 'package:naftal/detail_bien.dart';
 import 'package:naftal/detail_operation.dart';
-import 'package:naftal/main.dart';
 import 'package:naftal/operations.dart';
 
 
@@ -71,7 +68,7 @@ class _ModeManuelState extends State<ModeManuel> {
   }else{
 
     User user =  await User.auth();
-    Localisation loc =  Localisation(codeBar.text,  DateTime.now().toIso8601String(), 0, user.matricule);
+    Localisation loc =  Localisation(codeBar.text,  DateTime.now().toIso8601String(), "   ", user.COP_ID.toString());
   
     
 

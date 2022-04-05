@@ -1,28 +1,26 @@
+import 'package:naftal/main.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 class User {
   late String matricule;
-   String ?nom;
-   String ?prenom;
-   String ?email;
-   String ?token; 
+  late  String nom;
+  late String COP_ID;
+  late  String INV_ID; 
 
-   User (String matricule,String nom,String prenom,String email,String ?token){
+   User (String matricule,String nom,String COP_ID,String INV_ID){
 
      this.matricule = matricule;
      this.nom = nom;
-     this.prenom = prenom;
-     this.email = email;
-     this.token = token;
+     this.COP_ID = COP_ID;
+     this.INV_ID = INV_ID;
    }
 
    Map<String, dynamic> toMap() {
     return {
       'matricule': matricule,
       'nom': nom,
-      'prenom': prenom,
-      'email': email,
-      'token': token
+      'COP_ID': COP_ID,
+      'INV_ID': INV_ID
     };
   }
 
@@ -30,24 +28,16 @@ class User {
 
         try{
            final database = openDatabase(
-          join(await getDatabasesPath(), 'naftal_scan.db')
+          join(await getDatabasesPath(), DBNAME)
           
           );
           final db = await database;
 
          final List<Map<String, dynamic>> maps = await db.query('User');
 
-          List<User> users = List.generate(maps.length, (i) {
-            return User(
-                  maps[i]['matricule'] ,
-                  maps[i]['nom'] ,
-                  maps[i]['prenom'] ,
-                  maps[i]['email'] ,
-                  maps[i]['token'] ,
-                );
-          });
+        
           
-          return users.length;
+          return maps.length;
 
 
         }catch(e){
@@ -63,7 +53,7 @@ class User {
   static Future<User> auth() async{
 
        final database = openDatabase(
-          join(await getDatabasesPath(), 'naftal_scan.db')
+          join(await getDatabasesPath(), DBNAME)
           
           );
           final db = await database;
@@ -74,9 +64,8 @@ class User {
             return User(
                   maps[i]['matricule'] ,
                   maps[i]['nom'] ,
-                  maps[i]['prenom'] ,
-                  maps[i]['email'] ,
-                  maps[i]['token'] ,
+                  maps[i]['COP_ID'] ,
+                  maps[i]['INV_ID'] ,
                 );
           });
           
@@ -87,6 +76,6 @@ class User {
 
   @override
   String toString() {
-    return 'User{matricule: $matricule, name: $nom, prenom: $prenom}';
+    return 'User{matricule: $matricule, name: $nom}';
   }
 }

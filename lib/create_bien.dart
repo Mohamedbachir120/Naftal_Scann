@@ -26,7 +26,6 @@ class _Create_BienState extends State<Create_Bien> {
 
    static const Color  blue = Color.fromRGBO(0, 73, 132, 1);
    static const Color yellow   =  Color.fromRGBO(255, 227,24, 1);
-  int _value= 2;
 
   
   @override

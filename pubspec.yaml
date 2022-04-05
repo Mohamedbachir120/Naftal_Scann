@@ -41,6 +41,15 @@ dependencies:
   dio: ^4.0.4
   connectivity_plus: ^2.2.1
   salomon_bottom_bar: ^3.3.0
+  dropdown_button2: ^1.2.2
+  number_selection: ^1.0.0
+  numberpicker: ^2.1.1
+  path_provider: ^2.0.9
+  easy_autocomplete: ^1.5.0
+
+
+
+
 
 
 dev_dependencies:
@@ -80,6 +89,8 @@ flutter:
   assets:
     - assets/Logo_NAFTAL.png
     - assets/naftal.png
+    - assets/team.jpg
+    - assets/naftal_scan.db
 
   #   - images/a_dot_ham.jpeg
 

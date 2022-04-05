@@ -129,7 +129,7 @@ class _Update_BienState extends State<Update_Bien> {
                                         
                                       ListTile(
                                         title: Text(
-                                          'Mauvais',
+                                          'Bon',
                                         ),
                                         leading: Radio(
                                           value: 1,
@@ -149,7 +149,7 @@ class _Update_BienState extends State<Update_Bien> {
                                       ),
                                          ListTile(
                                         title: Text(
-                                          'Moyen',
+                                          'Hors serivce',
                                         ),
                                         leading: Radio(
                                           value: 2,
@@ -168,7 +168,7 @@ class _Update_BienState extends State<Update_Bien> {
                                       ),
                                          ListTile(
                                         title: Text(
-                                          'Bon',
+                                          'A réformer',
                                         ),
                                         leading: Radio(
                                           value: 3,
