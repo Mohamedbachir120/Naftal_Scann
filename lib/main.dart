@@ -1,8 +1,8 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:naftal/Login.dart';
 import 'package:numberpicker/numberpicker.dart';
+import 'data/User.dart';
 import 'operations.dart';
 import 'dart:async';
 import 'package:path/path.dart';
@@ -11,17 +11,12 @@ import 'package:easy_autocomplete/easy_autocomplete.dart';
 import 'package:sqflite/sqflite.dart';
 import 'dart:io' as io;
 
-
-
 const IP_ADDRESS = "http://192.168.0.127:8080/";
 int MODE_SCAN = 1;
 int YEAR = DateTime.now().year;
 
 var STRUCTURE = "";
 const DBNAME = "naftal_scan.db";
-
-
-
 
 void main() {
   runApp(const ChoixStructure());
@@ -86,10 +81,28 @@ class _ChoixStructurePageState extends State<ChoixStructurePage> {
     nb = maps.length;
 
     if (nb > 0) {
-      Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => MyApp()),
-          (Route<dynamic> route) => false);
+      User user = User(maps[0]['matricule'], maps[0]['nom'], maps[0]['COP_ID'],
+          maps[0]['INV_ID'], maps[0]["validity"]);
+
+      DateTime date = DateTime.parse(user.validity);
+      DateTime now = DateTime.now();
+
+      if (date.isAfter(now)) {
+        Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => MyApp()),
+            (Route<dynamic> route) => false);
+      } else {
+        await db.execute("DELETE FROM User;");
+        final List<Map<String, dynamic>> Struct = await db.query(
+            'T_E_LOCATION_LOC',
+            distinct: true,
+            columns: ['COP_ID', 'COP_LIB']);
+
+        Structures = List.generate(Struct.length, (i) {
+          return "${Struct[i]['COP_ID']} - ${Struct[i]['COP_LIB']}";
+        });
+      }
     } else {
       final List<Map<String, dynamic>> Struct = await db.query(
           'T_E_LOCATION_LOC',
@@ -109,22 +122,20 @@ class _ChoixStructurePageState extends State<ChoixStructurePage> {
     });
   }
 
-void Show_Error(BuildContext context){
- ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content:
-                                               Row(
-                                                 mainAxisAlignment: MainAxisAlignment.start,
-                                                 children: [
-                                                   Icon(Icons.info,color: Colors.white,size: 20),
-                                                   Text("Centre d'opération invalide",
-                                              style: TextStyle(fontSize: 14.0),
-                                              ),
-                                                 ],
-                                               ),
-                                              backgroundColor: Colors.red,
-                                            )
-                                        );
+  void Show_Error(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Icon(Icons.info, color: Colors.white, size: 20),
+          Text(
+            "Centre d'opération invalide",
+            style: TextStyle(fontSize: 14.0),
+          ),
+        ],
+      ),
+      backgroundColor: Colors.red,
+    ));
   }
 
   @override
@@ -215,8 +226,7 @@ void Show_Error(BuildContext context){
                           value: YEAR,
                           minValue: minVal,
                           maxValue: maxVal,
-                          onChanged: (value) =>
-                              setState(() => YEAR = value),
+                          onChanged: (value) => setState(() => YEAR = value),
                         );
                       }),
                       SizedBox(
@@ -238,9 +248,9 @@ void Show_Error(BuildContext context){
                                 change_visibilty();
                                 try {
                                   setState(() {
-                                    if(STRUCTURE.contains("-")){
-
-                                     STRUCTURE = STRUCTURE.substring(0, STRUCTURE.indexOf("-") - 1);
+                                    if (STRUCTURE.contains("-")) {
+                                      STRUCTURE = STRUCTURE.substring(
+                                          0, STRUCTURE.indexOf("-") - 1);
                                     }
                                   });
                                   if (STRUCTURE.length >= 1) {
@@ -248,31 +258,26 @@ void Show_Error(BuildContext context){
                                         join(await getDatabasesPath(), DBNAME));
                                     final db = await database;
 
-                                    final List< Map<String,dynamic>> maps = await db.query(
+                                    final List<
+                                        Map<String,
+                                            dynamic>> maps = await db.query(
                                         "T_E_LOCATION_LOC where COP_ID = '${STRUCTURE}'; ");
-                                    if(maps.length > 0){
-
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => LoginPage()));
-                                    }else{
-
-                                    Show_Error(context);
-
+                                    if (maps.length > 0) {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  LoginPage()));
+                                    } else {
+                                      Show_Error(context);
                                     }
-                                  }else{
+                                  } else {
                                     Show_Error(context);
                                   }
                                 } catch (e) {
-
-                                    Show_Error(context);
-
-                                  
+                                  Show_Error(context);
                                 }
                                 change_visibilty();
-
-                              
                               },
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(

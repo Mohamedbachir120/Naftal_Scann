@@ -1,7 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.naftal">
+    <uses-permission android:name="android.permission.INTERNET"/> <!-- Add this -->
+
    <application
-        android:label="naftal"
+        android:label="naftal_Immo"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity

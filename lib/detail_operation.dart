@@ -1,21 +1,19 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:naftal/all_objects.dart';
-
+import 'package:naftal/create_Non_etiqu.dart';
 import 'package:naftal/data/Bien_materiel.dart';
 import 'package:naftal/data/Localisation.dart';
 import 'package:naftal/detail_bien.dart';
-
 import 'package:naftal/history.dart';
 import 'package:naftal/main.dart';
-
 import 'package:naftal/mode_manuel_bien.dart';
 import 'package:naftal/operations.dart';
 import 'data/User.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
+
 
 class Detail_Operation extends StatefulWidget {
   const Detail_Operation({Key? key, required this.localisation})
@@ -325,6 +323,26 @@ class _Detail_OperationState extends State<Detail_Operation> {
                                     margin: EdgeInsets.all(10),
                                     width: double.infinity,
                                     child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Icon(Icons.home_work),
+                                        SizedBox(
+                                          width: 10,
+                                        ),
+                                        Expanded(
+                                          child: Text(
+                                            '${localisation.designation}',
+                                            style: TextStyle(fontSize: 16),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    margin: EdgeInsets.all(10),
+                                    width: double.infinity,
+                                    child: Row(
                                       children: [
                                         Icon(Icons.format_list_numbered),
                                         SizedBox(
@@ -478,6 +496,7 @@ class _Detail_OperationState extends State<Detail_Operation> {
                                             },
                                             icon: Icon(Icons.front_hand),
                                             label: Text("Saisir code bar")),
+                                       
                                         TextButton.icon(
                                             style: TextButton.styleFrom(
                                                 primary: Colors.white,
@@ -490,6 +509,20 @@ class _Detail_OperationState extends State<Detail_Operation> {
                                       ],
                                     ),
                                   ),
+                                  Container(child: TextButton.icon(
+                                            style: TextButton.styleFrom(
+                                                primary: Colors.white,
+                                                backgroundColor: Colors.redAccent),
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        Create_Non_etiqu()),
+                                              );
+                                            },
+                                            icon: Icon(Icons.add),
+                                            label: Text("un article SN")),)
                                 ],
                               ),
                             ),
@@ -542,14 +575,16 @@ class _Detail_OperationState extends State<Detail_Operation> {
                                   Visibility(
                                     visible: show_detail,
                                     child: SizedBox(
-                                      height: MediaQuery.of(context).size.height - 230,
+                                      height:
+                                          MediaQuery.of(context).size.height -
+                                              230,
                                       child: ListView.builder(
-                                        itemCount: list_objects.length,
-                                        itemBuilder: (context,index){
-                                            return BienWidget(list_objects[index]);
-                                        }),
+                                          itemCount: list_objects.length,
+                                          itemBuilder: (context, index) {
+                                            return BienWidget(
+                                                list_objects[index]);
+                                          }),
                                     ),
-                                   
                                   )
                                 ],
                               ),

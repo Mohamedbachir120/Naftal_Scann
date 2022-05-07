@@ -49,7 +49,9 @@ class _Update_BienState extends State<Update_Bien> {
   Widget build(BuildContext context) {
     
     return Scaffold(
-            appBar: AppBar(title: const Text('Naftal Scanner',style: TextStyle(
+            appBar: AppBar(
+            automaticallyImplyLeading: false,
+              title: const Text('Naftal Scanner',style: TextStyle(
               color: yellow
            
             )

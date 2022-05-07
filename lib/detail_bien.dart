@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:naftal/all_objects.dart';
 import 'package:naftal/data/Bien_materiel.dart';
+import 'package:naftal/detail_operation.dart';
 import 'package:naftal/history.dart';
 import 'package:naftal/main.dart';
 import 'package:naftal/mode_manuel_bien.dart';
@@ -35,6 +36,15 @@ class _Detail_BienState extends State<Detail_Bien> {
 
   late User user;
   String _scanBarcode = '';
+  late int nbrticle;
+  Future<int> NBARTICLE ()async{
+
+      nbrticle = await localisation.count_linked_object();
+    
+
+    return nbrticle;
+
+  }
 
   TextEditingController nomController = TextEditingController();
 
@@ -46,11 +56,7 @@ class _Detail_BienState extends State<Detail_Bien> {
     super.initState();
   }
 
-  String date_format(String date) {
-    DateTime day = DateTime.parse(date);
-
-    return "${day.day}/${day.month}/${day.year}    ${day.hour}:${day.minute}";
-  }
+  
 
   Future<void> scanBarcodeNormal(BuildContext context) async {
     User user = await User.auth();
@@ -216,7 +222,7 @@ class _Detail_BienState extends State<Detail_Bien> {
                               width: 10,
                             ),
                             Text(
-                              'Date de scan : ${date_format(bien_materiel.date_scan.toString())}',
+                              'Date de scan : ${bien_materiel.date_scan}',
                               style: TextStyle(fontSize: 16),
                             ),
                           ],
@@ -238,30 +244,56 @@ class _Detail_BienState extends State<Detail_Bien> {
                           ],
                         ),
                       ),
+                        FutureBuilder(
+                          future: NBARTICLE(),
+                          builder: (context, snapshot) {
+                            if(snapshot.hasData){
+
+                            return Container(
+                            margin: EdgeInsets.all(10),
+                            width: double.infinity,
+                            child: Row(
+                              children: [
+                                Icon(Icons.format_list_numbered),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Text(
+                                  "Nombre d'article scannés: ${nbrticle}",
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                              ],
+                            ),
+                                              );
+                            }else{
+                              return Container();
+                            }
+                          }
+                        ),
                       Container(
                         margin: EdgeInsets.all(10),
                         width: double.infinity,
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
+                          
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
                             TextButton.icon(
                                 style: TextButton.styleFrom(
                                     primary: Colors.white,
-                                    backgroundColor: Colors.green),
+                                    backgroundColor: Colors.blue[800]),
                                 onPressed: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => Update_Bien(
-                                        bien: bien_materiel,
+                                      builder: (context) => Detail_Operation(
                                         localisation: localisation,
                                       ),
                                     ),
                                   );
                                 },
-                                icon: Icon(Icons.edit),
-                                label: Text("Modifier"))
-                          ],
+                                icon: Icon(Icons.home_outlined),
+                                label: Text("Localité")),
+                                   ],
                         ),
                       ),
                       Container(

@@ -44,7 +44,10 @@ class _Create_BienState extends State<Create_Bien> {
   Widget build(BuildContext context) {
     bien = ModalRoute.of(context)!.settings.arguments as Bien_materiel;
     return Scaffold(
-            appBar: AppBar(title: const Text('Naftal Scanner',style: TextStyle(
+
+            appBar: AppBar(
+            automaticallyImplyLeading: false,
+              title: const Text('Naftal Scanner',style: TextStyle(
               color: yellow
            
             )

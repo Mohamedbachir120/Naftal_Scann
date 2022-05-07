@@ -118,6 +118,8 @@ class _ModeManuelBienState extends State<ModeManuelBien> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading: false,
+
           title: const Text('Naftal Scanner', style: TextStyle(color: yellow)),
           backgroundColor: blue,
         ),

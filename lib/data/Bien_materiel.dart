@@ -1,3 +1,4 @@
+import 'package:naftal/data/User.dart';
 import 'package:naftal/main.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
@@ -11,11 +12,16 @@ class Bien_materiel {
   état 3 = A réformer 
 
   */
+   String date_format() {
+    DateTime day = DateTime.parse(this.date_scan);
+
+    return "${day.day}/${day.month}/${day.year}    ${day.hour}:${day.minute}";
+  }
 
   late final String code_bar;
 
   int etat = 3;
-  String? date_scan;
+  String date_scan;
   int stockage = 0;
   late String code_localisation;
   late String CODE_COP;
@@ -51,15 +57,25 @@ class Bien_materiel {
 
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
-      var dio = Dio();
+      try{
 
-      final response =
-          await dio.post('${IP_ADDRESS}existeBien', data: this.toJson());
-      if (response.toString() == "true") {
-        return true;
-      } else {
-        return false;
+      
+   User user  = await User.auth();    
+    Dio dio = Dio();
+      dio.options.headers["Authorization"]= 'Bearer ' +await user.getToken();
+        final response =
+            await dio.post('${IP_ADDRESS}existeBien', data: this.toJson(),  
+            );
+        if (response.toString() == "true") {
+          return true;
+        } else {
+          return false;
+        }
+        }catch(e){
+          return false;
       }
+
+     
     } else {
       return false;
     }
@@ -86,6 +102,7 @@ class Bien_materiel {
   }
 
   Future<bool> Store_Bien() async {
+    this.date_scan = date_format();
     final database = openDatabase(join(await getDatabasesPath(), DBNAME));
     final db = await database;
 
@@ -94,8 +111,9 @@ class Bien_materiel {
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
       try {
-        var dio = Dio();
-
+   User user  = await User.auth();    
+    Dio dio = Dio();
+      dio.options.headers["Authorization"]= 'Bearer ' +await user.getToken();
         final response =
             await dio.post('${IP_ADDRESS}create_bien', data: this.toJson());
 
@@ -108,7 +126,11 @@ class Bien_materiel {
 
         return true;
       } on DioError {
-        return false;
+         this.stockage = 0;
+        db.insert('Bien_materiel', this.toMap(),
+            conflictAlgorithm: ConflictAlgorithm.replace);
+
+        return true;
       }
     } else {
       await db.insert('Bien_materiel', this.toMap(),
@@ -118,6 +140,7 @@ class Bien_materiel {
   }
 
   Store_Bien_Soft() async {
+    this.date_scan = date_format();
     final database = openDatabase(join(await getDatabasesPath(), DBNAME));
     final db = await database;
 
@@ -131,8 +154,9 @@ class Bien_materiel {
         if (connectivityResult == ConnectivityResult.mobile ||
             connectivityResult == ConnectivityResult.wifi) {
           try {
-            var dio = Dio();
-
+       User user  = await User.auth();    
+    Dio dio = Dio();
+      dio.options.headers["Authorization"]= 'Bearer ' +await user.getToken();
             final response =
                 await dio.post('${IP_ADDRESS}create_bien', data: this.toJson());
 

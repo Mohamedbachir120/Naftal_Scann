@@ -158,7 +158,8 @@ class _LoginPageState extends State<LoginPage> {
                                   Icons.person,
                                   color: Colors.black,
                                 ),
-                                labelText: "Nom & Prénom",
+                                labelText: "Matricule",
+                                hintText: "Matricule",
                                 labelStyle: TextStyle(color: Colors.black),
                                 focusedBorder: InputBorder.none,
                                 enabledBorder: InputBorder.none,
@@ -257,7 +258,7 @@ class _LoginPageState extends State<LoginPage> {
                                   final List<
                                       Map<String,
                                           dynamic>> maps = await db.query(
-                                      "T_E_GROUPE_INV where EMP_FULLNAME = '${emailController.text.trim().toUpperCase()}' and YEAR = ${YEAR} and COP_ID = '${STRUCTURE}' ");
+                                      "T_E_GROUPE_INV where EMP_ID = '${emailController.text.trim()}' and YEAR = ${YEAR} and COP_ID = '${STRUCTURE}' ");
 
                                   if (maps.length > 0) {
                                      user = User(
@@ -265,6 +266,7 @@ class _LoginPageState extends State<LoginPage> {
                                       maps[0]["EMP_FULLNAME"],
                                       STRUCTURE,
                                       maps[0]["INV_ID"],
+                                      DateTime.now().add(Duration(days: 1)).toIso8601String()
                                     );
                                      db.insert('User', user.toMap(),conflictAlgorithm: ConflictAlgorithm.replace);
                                     Navigator.pushAndRemoveUntil(
@@ -283,7 +285,7 @@ class _LoginPageState extends State<LoginPage> {
                                         Icon(Icons.info,
                                             color: Colors.white, size: 20),
                                         Text(
-                                          "Nom ou Mot de passe incorrect",
+                                          "Matricule ou Mot de passe incorrect",
                                           style: TextStyle(fontSize: 14.0),
                                         ),
                                       ],

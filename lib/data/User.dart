@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+import 'package:naftal/data/LoginInfos.dart';
 import 'package:naftal/main.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
@@ -6,13 +8,15 @@ class User {
   late  String nom;
   late String COP_ID;
   late  String INV_ID; 
+  late String validity;
 
-   User (String matricule,String nom,String COP_ID,String INV_ID){
+   User (String matricule,String nom,String COP_ID,String INV_ID,String validity){
 
      this.matricule = matricule;
      this.nom = nom;
      this.COP_ID = COP_ID;
      this.INV_ID = INV_ID;
+     this.validity = validity;
    }
 
    Map<String, dynamic> toMap() {
@@ -20,7 +24,9 @@ class User {
       'matricule': matricule,
       'nom': nom,
       'COP_ID': COP_ID,
-      'INV_ID': INV_ID
+      'INV_ID': INV_ID,
+      "validity":validity
+
     };
   }
 
@@ -60,19 +66,27 @@ class User {
 
          final List<Map<String, dynamic>> maps = await db.query('User');
 
-          List<User> users = List.generate(maps.length, (i) {
-            return User(
-                  maps[i]['matricule'] ,
-                  maps[i]['nom'] ,
-                  maps[i]['COP_ID'] ,
-                  maps[i]['INV_ID'] ,
+          return User(
+                  maps[0]['matricule'] ,
+                  maps[0]['nom'] ,
+                  maps[0]['COP_ID'] ,
+                  maps[0]['INV_ID'] ,
+                  maps[0]["validity"]
                 );
-          });
-          
-          return users[0];
 
 
     }
+      Future<String> getToken() async {
+    var dio = Dio();
+    final response = await dio.post(
+      '${IP_ADDRESS}api/auth/signin',
+      data: LoginInfo(username: this.matricule, password: "a").toJson(),
+    );
+
+    final data = response.data;
+    print(response);
+    return(data["accessToken"]).toString();
+  }
 
   @override
   String toString() {

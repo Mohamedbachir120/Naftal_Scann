@@ -1,10 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:naftal/all_objects.dart';
 import 'package:naftal/data/Bien_materiel.dart';
 import 'package:naftal/data/Localisation.dart';
+import 'package:naftal/data/Non_Etiquete.dart';
 import 'package:naftal/detail_bien.dart';
 import 'package:naftal/main.dart';
 import 'package:naftal/operations.dart';
@@ -60,11 +62,7 @@ class _HistoryPageState extends State<HistoryPage> {
     fontWeight: FontWeight.w500,
     fontSize: 16,
   );
-  String date_format(String date) {
-    DateTime day = DateTime.parse(date);
 
-    return "${day.day}/${day.month}/${day.year}    ${day.hour}:${day.minute}";
-  }
 
   Widget BienWidget(Bien_materiel bien, BuildContext context) {
     return Container(
@@ -119,7 +117,7 @@ class _HistoryPageState extends State<HistoryPage> {
                   style: textStyle,
                 ),
                 Text(
-                  date_format(bien.date_scan.toString()),
+                bien.date_scan.toString(),
                   style: textStyle,
                 )
               ],
@@ -160,8 +158,9 @@ class _HistoryPageState extends State<HistoryPage> {
     user = await User.auth();
     list = await Bien_materiel.history();
     list = list.reversed.toList();
-
-    loc = await Localisation.get_localisation(list[0].code_localisation);
+    if (list.length > 0) {
+      loc = await Localisation.get_localisation(list[0].code_localisation);
+    }
 
     return list;
   }
@@ -171,129 +170,209 @@ class _HistoryPageState extends State<HistoryPage> {
     return FutureBuilder(
       future: fetchBien(context),
       builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-        if (snapshot.hasData) {
+        if (snapshot.hasData && list.length > 0) {
           return Scaffold(
             appBar: AppBar(
+              automaticallyImplyLeading: false,
               title:
                   const Text('Naftal Scanner', style: TextStyle(color: yellow)),
               backgroundColor: blue,
             ),
             body: SingleChildScrollView(
                 child: Column(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(10),
-                      decoration: BoxDecoration(color: Color.fromARGB(255, 244, 246, 247)),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(10),
+                  decoration:
+                      BoxDecoration(color: Color.fromARGB(255, 244, 246, 247)),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
                         children: [
-                          Row(
-                            children: [
-                              Icon(Icons.history, size: 30, color: blue),
-                              Text(
-                                "Historique des articles",
-                                style: TextStyle(
-                                    fontSize: 20,
-                                    color: blue,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ],
+                          Icon(Icons.history, size: 30, color: blue),
+                          Text(
+                            "Historique des articles",
+                            style: TextStyle(
+                                fontSize: 20,
+                                color: blue,
+                                fontWeight: FontWeight.bold),
                           ),
-                          CircleAvatar(
-                            radius: 25,
-                            backgroundColor: Colors.green,
-                            child: IconButton(
-                                onPressed: () async {
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(SnackBar(
-                                    content: Row(
-                                      mainAxisAlignment: MainAxisAlignment.start,
-                                      children: [
-                                        Icon(Icons.sync,
-                                            color: Colors.black87, size: 25),
-                                        Text(
-                                          "Synchronisation en cours",
-                                          style: TextStyle(
-                                              fontSize: 17.0,
-                                              color: Colors.black87),
-                                        ),
-                                      ],
-                                    ),
-                                    backgroundColor:
-                                        Color.fromARGB(255, 214, 214, 214),
-                                  ));
-                                  List<Bien_materiel> objects =
-                                      await Bien_materiel.synchonized_objects();
-                                  Dio dio = Dio();
-                                  final response = await dio.post(
-                                      '${IP_ADDRESS}save_many',
-                                      data: jsonEncode(objects));
-
-                          
-                                  if (response.toString() == "true") {
-                                    final database = openDatabase(join(
-                                        await getDatabasesPath(),
-                                        'naftal_scan.db'));
-                                    final db = await database;
-                                     await db.rawUpdate(
-                                        "UPDATE Bien_materiel SET stockage = 1 where stockage = 0");
-                          
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(SnackBar(
-                                      content: Row(
-                                        mainAxisAlignment: MainAxisAlignment.start,
-                                        children: [
-                                          Icon(Icons.check,
-                                              color: Colors.white, size: 25),
-                                          Text(
-                                            "Synchronisation effectuée avec succès",
-                                            style: TextStyle(
-                                                fontSize: 17.0,
-                                                color: Colors.white),
-                                          ),
-                                        ],
-                                      ),
-                                      backgroundColor: Colors.green,
-                                    ));
-                                  } else {
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(SnackBar(
-                                      content: Row(
-                                        mainAxisAlignment: MainAxisAlignment.start,
-                                        children: [
-                                          Icon(Icons.info,
-                                              color: Colors.white, size: 25),
-                                          Text(
-                                            "une erreur est survenue veuillez réessayer",
-                                            style: TextStyle(fontSize: 17.0),
-                                          ),
-                                        ],
-                                      ),
-                                      backgroundColor: Colors.red,
-                                    ));
-                                  }
-                                },
-                                icon: Icon(
-                                  Icons.sync_sharp,
-                                  size: 20,
-                                  color: Colors.white,
-                                )),
-                          )
                         ],
                       ),
-                    ),
-                    SizedBox(
-                      height: MediaQuery.of(context).size.height - 225,
-                      child: ListView.builder(
-                        itemCount: list.length,
-                        itemBuilder: (context, index) {
-                          return (BienWidget(list[index], context));
-                        },
-                        physics: ScrollPhysics(),
-                      ),
-                    )
-                  ],
-                )),
+                      CircleAvatar(
+                        radius: 25,
+                        backgroundColor: Colors.green,
+                        child: IconButton(
+                            onPressed: () async {
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(SnackBar(
+                                content: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Icon(Icons.sync,
+                                        color: Colors.black87, size: 25),
+                                    Text(
+                                      "Synchronisation en cours",
+                                      style: TextStyle(
+                                          fontSize: 17.0,
+                                          color: Colors.black87),
+                                    ),
+                                  ],
+                                ),
+                                backgroundColor:
+                                    Color.fromARGB(255, 214, 214, 214),
+                              ));
+                              List<Bien_materiel> objects =
+                                  await Bien_materiel.synchonized_objects();
+                              List<Non_Etiquete> object2 =
+                                  await Non_Etiquete.synchonized_objects();
+                             User user  = await User.auth();    
+    Dio dio = Dio();
+      dio.options.headers["Authorization"]= 'Bearer ' +await user.getToken();
+                              var response = await dio.post(
+                                  '${IP_ADDRESS}save_many',
+                                  data: jsonEncode(objects));
+
+                              response = await dio.post(
+                                  '${IP_ADDRESS}save_manyNonEtiqu',
+                                  data: jsonEncode(object2));
+
+                              if (response.toString() == "true") {
+                                final database = openDatabase(join(
+                                    await getDatabasesPath(),
+                                    'naftal_scan.db'));
+                                final db = await database;
+                                await db.rawUpdate(
+                                    "UPDATE Bien_materiel SET stockage = 1 where stockage = 0");
+
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(SnackBar(
+                                  content: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Icon(Icons.check,
+                                          color: Colors.white, size: 25),
+                                      Text(
+                                        "Synchronisation effectuée avec succès",
+                                        style: TextStyle(
+                                            fontSize: 17.0,
+                                            color: Colors.white),
+                                      ),
+                                    ],
+                                  ),
+                                  backgroundColor: Colors.green,
+                                ));
+                              } else {
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(SnackBar(
+                                  content: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Icon(Icons.info,
+                                          color: Colors.white, size: 25),
+                                      Text(
+                                        "une erreur est survenue veuillez réessayer",
+                                        style: TextStyle(fontSize: 17.0),
+                                      ),
+                                    ],
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ));
+                              }
+                            },
+                            icon: Icon(
+                              Icons.sync_sharp,
+                              size: 20,
+                              color: Colors.white,
+                            )),
+                      )
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height - 225,
+                  child: ListView.builder(
+                    itemCount: list.length,
+                    itemBuilder: (context, index) {
+                      return (BienWidget(list[index], context));
+                    },
+                    physics: ScrollPhysics(),
+                  ),
+                )
+              ],
+            )),
+            bottomNavigationBar: SalomonBottomBar(
+              currentIndex: _currentIndex,
+              onTap: (i) {
+                switch (i) {
+                  case 0:
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => MyApp()),
+                      ModalRoute.withName('/'),
+                    );
+                    break;
+
+                  case 1:
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => History()),
+                    );
+                    break;
+                  case 2:
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => All_objects()),
+                    );
+                    break;
+                }
+              },
+              items: [
+                /// Home
+                SalomonBottomBarItem(
+                  icon: Icon(Icons.home),
+                  title: Text("Accueil"),
+                  selectedColor: Color.fromARGB(255, 4, 50, 88),
+                ),
+
+                /// Search
+                SalomonBottomBarItem(
+                  icon: Icon(Icons.history),
+                  title: Text("Historique"),
+                  selectedColor: Color.fromARGB(255, 4, 50, 88),
+                ),
+
+                /// Profile
+                SalomonBottomBarItem(
+                  icon: Icon(Icons.storage),
+                  title: Text("Serveur"),
+                  selectedColor: Color.fromARGB(255, 4, 50, 88),
+                ),
+              ],
+            ),
+          );
+        } else if (snapshot.connectionState == ConnectionState.done &&
+            list.length == 0) {
+          return Scaffold(
+            body: Container(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Center(
+                      child: Icon(
+                    Icons.history,
+                    size: 35,
+                  )),
+                  Center(
+                      child: Text(
+                    "La liste d'historique est vide",
+                    style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold),
+                  ))
+                ],
+              ),
+            ),
             bottomNavigationBar: SalomonBottomBar(
               currentIndex: _currentIndex,
               onTap: (i) {
@@ -346,21 +425,22 @@ class _HistoryPageState extends State<HistoryPage> {
           );
         } else {
           return Scaffold(
-              body: Container(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
-                  child: SizedBox(
-                      height: 5,
-                      width: double.infinity,
-                      child: LinearProgressIndicator()),
-                )
-              ],
+            body: Container(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
+                    child: SizedBox(
+                        height: 5,
+                        width: double.infinity,
+                        child: LinearProgressIndicator()),
+                  )
+                ],
+              ),
             ),
-          ));
+          );
         }
       },
     );

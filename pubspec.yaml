@@ -46,6 +46,7 @@ dependencies:
   numberpicker: ^2.1.1
   path_provider: ^2.0.9
   easy_autocomplete: ^1.5.0
+  package_info_plus: ^1.4.2
 
 
 
@@ -90,6 +91,7 @@ flutter:
     - assets/Logo_NAFTAL.png
     - assets/naftal.png
     - assets/team.jpg
+    - assets/avatar.png
     - assets/naftal_scan.db
 
   #   - images/a_dot_ham.jpeg
