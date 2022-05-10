@@ -11,7 +11,9 @@ import 'package:easy_autocomplete/easy_autocomplete.dart';
 import 'package:sqflite/sqflite.dart';
 import 'dart:io' as io;
 
-const IP_ADDRESS = "http://192.168.0.127:8080/";
+const IP_ADDRESS = "http://10.96.3.21:8080/naftimobackend/";
+// const IP_ADDRESS = "http://192.168.0.127:8080/";
+
 int MODE_SCAN = 1;
 int YEAR = DateTime.now().year;
 
@@ -93,6 +95,7 @@ class _ChoixStructurePageState extends State<ChoixStructurePage> {
             MaterialPageRoute(builder: (context) => MyApp()),
             (Route<dynamic> route) => false);
       } else {
+        nb=0;
         await db.execute("DELETE FROM User;");
         final List<Map<String, dynamic>> Struct = await db.query(
             'T_E_LOCATION_LOC',

@@ -39,10 +39,10 @@ class Localisation {
   // Maping pour l'insertion dans la base de donnés
   Map<String, dynamic> toMap() {
     return {
-      'code_bar': code_bar,
-      'designation': designation,
-      'cop_lib': cop_lib,
-      'cop_id': cop_id
+      'LOC_ID': code_bar,
+      'LOC_LIB': designation,
+      'COP_LIB': cop_lib,
+      'COP_ID': cop_id
     };
   }
 
@@ -112,7 +112,9 @@ class Localisation {
           maps[i]['code_localisation'],
           maps[i]['stockage'],
           maps[i]['CODE_COP'],
-          maps[i]['matricule']);
+          maps[i]['matricule'],
+          maps[i]['inv_id']
+          );
     });
   }
 

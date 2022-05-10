@@ -193,7 +193,9 @@ class _Detail_OperationState extends State<Detail_Operation> {
           localisation.code_bar,
           0,
           user.COP_ID,
-          user.matricule);
+          user.matricule,
+          user.INV_ID
+          );
 
       bool exist = await bien.exists();
 

@@ -77,6 +77,7 @@ class User {
 
     }
       Future<String> getToken() async {
+    try {
     var dio = Dio();
     final response = await dio.post(
       '${IP_ADDRESS}api/auth/signin',
@@ -84,8 +85,11 @@ class User {
     );
 
     final data = response.data;
-    print(response);
     return(data["accessToken"]).toString();
+      
+    } catch (e) {
+      return "";
+    }
   }
 
   @override

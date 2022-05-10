@@ -7,6 +7,7 @@ import 'package:naftal/all_non_etique.dart';
 import 'package:naftal/all_objects.dart';
 import 'package:naftal/create_Non_etiqu.dart';
 import 'package:naftal/data/Bien_materiel.dart';
+import 'package:naftal/data/Equipe.dart';
 import 'package:naftal/data/Localisation.dart';
 import 'package:naftal/data/Non_Etiquete.dart';
 import 'package:naftal/data/User.dart';
@@ -16,6 +17,7 @@ import 'package:naftal/history.dart';
 import 'package:dio/dio.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:naftal/mode_manuel.dart';
+import 'package:skeleton_animation/skeleton_animation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -67,10 +69,79 @@ class _MyAppState extends State<MyApp> {
   late Future<int> initAPP;
 
   Future<int> _initPackageInfo() async {
-    final info = await PackageInfo.fromPlatform();
-    setState(() {
-      _packageInfo = info;
+    await initConnectivity();
+  if(_connectionStatus == ConnectivityResult.wifi){
+    try {
+      
+    
+    User user = await User.auth();
+    Dio dio = Dio();
+      dio.options.headers["Authorization"]= 'Bearer ' +await user.getToken();
+
+    var response =
+    await dio.get('${IP_ADDRESS}api/auth/lastVersion');
+
+     final database = openDatabase(join(await getDatabasesPath(), DBNAME));
+    final db = await database;
+     List<Map<String, dynamic>> list = await db.query(
+        'updates',
+        columns: ['version']);
+
+    var lastVersion = response.data['version'];
+
+    if(list[0]["version"] != response.data['version']){
+      var response =  await dio.get('${IP_ADDRESS}localite');
+     List temp = response.data;
+    List<Localisation> loc =  List.generate(temp.length, (i) {
+      return Localisation(
+        temp[i]['loc_ID'],
+        temp[i]['loc_LIB'],
+        temp[i]['cop_LIB'],
+        temp[i]['cop_ID']
+      );
     });
+      
+      response = await dio.get('${IP_ADDRESS}equipe');
+      temp = response.data;
+
+      List<Equipe> equi = List.generate(temp.length, (i) {
+
+        return Equipe(
+          YEAR: temp[i]['year'] ,
+         INV_ID:  temp[i]['inv_ID'], 
+         COP_ID:  temp[i]['cop_ID'],
+          EMP_ID:  temp[i]['emp_ID'], 
+          EMP_FULLNAME:  temp[i]['emp_FULLNAME'], 
+          JOB_LIB:  temp[i]['job_LIB'],
+           GROUPE_ID:  temp[i]['groupe_ID'], 
+           EMP_IS_MANAGER:  temp[i]['emp_IS_MANAGER']);
+
+      });
+
+      var batch = db.batch();
+       batch.execute("DELETE FROM T_E_LOCATION_LOC;");
+       batch.execute("DELETE FROM T_E_GROUPE_INV;");
+
+
+      for (var item in loc) {
+        batch.insert('T_E_LOCATION_LOC', item.toMap());
+      }
+      for(var item in equi){
+        batch.insert('T_E_GROUPE_INV', item.toMap());
+      }
+
+      batch.insert('updates',{ "id":1,"version":lastVersion},
+      conflictAlgorithm: ConflictAlgorithm.replace);
+      await batch.commit(noResult: true);
+
+    } } catch (e) {
+      print("");
+    }
+    }
+   
+    final info = await PackageInfo.fromPlatform();
+      _packageInfo = info;
+    
     return 0;
   }
 
@@ -279,9 +350,9 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<String> User_infos() async {
+    User user = await User.auth();
     final database = openDatabase(join(await getDatabasesPath(), DBNAME));
     final db = await database;
-    User user = await User.auth();
     final List<Map<String, dynamic>> list1 = await db.query(
         'T_E_LOCATION_LOC where COP_ID = "${user.COP_ID}"',
         distinct: true,
@@ -732,21 +803,45 @@ class _MyAppState extends State<MyApp> {
                     )
                   ]);
             } else {
-              return Container(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
-                      child: SizedBox(
-                          height: 5,
-                          width: double.infinity,
-                          child: LinearProgressIndicator()),
-                    )
-                  ],
+              return  Container(
+                padding: EdgeInsets.all(15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                 Skeleton(
+                  width: 300,
+                  height: 30,
                 ),
-              );
+                SizedBox(height: 30,),
+
+                Skeleton(
+                  width: double.infinity,
+                  height: 80,
+                ),
+                SizedBox(height: 10,),
+                Skeleton(
+                  width: double.infinity,
+                  height: 80,
+                ),
+                SizedBox(height: 10,),
+                Skeleton(
+                  width: double.infinity,
+                  height: 80,
+                ),
+                SizedBox(height: 10,),
+                Skeleton(
+                  width: double.infinity,
+                  height: 80,
+                ),
+                SizedBox(height: 10,),
+                Skeleton(
+                  width: double.infinity,
+                  height: 80,
+                )
+              ],
+
+            ));
+        
             }
           }),
         ));

@@ -5,20 +5,16 @@ import 'package:path/path.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 
-class Bien_materiel { 
+class Non_Etiquete {
   /*
   état 1 = Bon 
   état 2 = Hors Service 
   état 3 = A réformer 
 
   */
-   String date_format() {
-    DateTime day = DateTime.parse(this.date_scan);
 
-    return "${day.day}/${day.month}/${day.year}    ${day.hour}:${day.minute}";
-  }
-
-  late final String code_bar;
+  
+  late final String num_serie;
 
   int etat = 3;
   String date_scan;
@@ -26,21 +22,35 @@ class Bien_materiel {
   late String code_localisation;
   late String CODE_COP;
   late String matricule;
-  String? inv_id;
+  late String marque;
+  late String modele;
+  late String nature;
+  int nombre=1;
 
-  Bien_materiel(this.code_bar, this.etat, this.date_scan,
-      this.code_localisation, this.stockage, this.CODE_COP, this.matricule,this.inv_id);
+
+  Non_Etiquete(this.num_serie, this.etat, this.date_scan,
+      this.code_localisation, this.stockage, this.CODE_COP, this.matricule, this.marque,this.modele,this.nature,this.nombre );
+
+ String date_format() {
+    DateTime day = DateTime.now();
+
+    return "${day.day}/${day.month}/${day.year}    ${day.hour}:${day.minute}";
+  }
 
   Map<String, dynamic> toMap() {
     return {
-      "code_bar": code_bar,
+      "num_serie": num_serie,
       "code_localisation": code_localisation,
       "CODE_COP": CODE_COP,
       "etat": etat,
       "date_scan": date_scan,
       "matricule": matricule,
       "stockage": stockage,
-      'inv_id':inv_id
+      "marque":marque,
+      "modele":modele,
+      "nature":nature,
+      "nombre":nombre
+
     };
   }
 
@@ -49,7 +59,7 @@ class Bien_materiel {
     final db = await database;
 
     final List<Map<String, dynamic>> maps = await db.query(
-        "Bien_materiel where code_bar  = '$code_bar' and code_localisation ='$code_localisation' ");
+        "Non_Etiquete where num_serie  = '$num_serie' and code_localisation ='$code_localisation' ");
 
     return (maps.length > 0);
   }
@@ -59,25 +69,15 @@ class Bien_materiel {
 
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
-      try{
+      var dio = Dio();
 
-      
-   User user  = await User.auth();    
-    Dio dio = Dio();
-      dio.options.headers["Authorization"]= 'Bearer ' +await user.getToken();
-        final response =
-            await dio.post('${IP_ADDRESS}existeBien', data: this.toJson(),  
-            );
-        if (response.toString() == "true") {
-          return true;
-        } else {
-          return false;
-        }
-        }catch(e){
-          return false;
+      final response =
+          await dio.post('${IP_ADDRESS}existeNon_Etique', data: this.toJson());
+      if (response.toString() == "true") {
+        return true;
+      } else {
+        return false;
       }
-
-     
     } else {
       return false;
     }
@@ -103,7 +103,7 @@ class Bien_materiel {
     return "";
   }
 
-  Future<bool> Store_Bien() async {
+  Future<bool> Store_Non_Etique() async {
     this.date_scan = date_format();
     final database = openDatabase(join(await getDatabasesPath(), DBNAME));
     final db = await database;
@@ -117,39 +117,40 @@ class Bien_materiel {
     Dio dio = Dio();
       dio.options.headers["Authorization"]= 'Bearer ' +await user.getToken();
         final response =
-            await dio.post('${IP_ADDRESS}create_bien', data: this.toJson());
+            await dio.post('${IP_ADDRESS}create_NonEtiqu', data: this.toJson());
 
         if (response == true) {
           this.stockage = 1;
         }
         this.stockage = 1;
-        db.insert('Bien_materiel', this.toMap(),
+        db.insert('Non_Etiquete', this.toMap(),
             conflictAlgorithm: ConflictAlgorithm.replace);
 
         return true;
       } on DioError {
          this.stockage = 0;
-        db.insert('Bien_materiel', this.toMap(),
+        db.insert('Non_Etiquete', this.toMap(),
             conflictAlgorithm: ConflictAlgorithm.replace);
-
         return true;
       }
     } else {
-      await db.insert('Bien_materiel', this.toMap(),
-          conflictAlgorithm: ConflictAlgorithm.replace);
-      return true;
+     
+        await db.insert('Non_Etiquete', this.toMap(),
+              conflictAlgorithm: ConflictAlgorithm.replace);
+          return true;
     }
   }
 
-  Store_Bien_Soft() async {
+  Store_Non_Etique_Soft() async {
     this.date_scan = date_format();
+
     final database = openDatabase(join(await getDatabasesPath(), DBNAME));
     final db = await database;
 
     try {
       if (this.stockage == 0) {
         db.rawUpdate(
-            'UPDATE Bien_materiel SET etat = ${MODE_SCAN} where code_bar = \'${this.code_bar}\' ');
+            'UPDATE Non_Etiquete SET etat = ${MODE_SCAN} where num_serie = \'${this.num_serie}\' ');
         return true;
       } else {
         var connectivityResult = await (Connectivity().checkConnectivity());
@@ -160,11 +161,11 @@ class Bien_materiel {
     Dio dio = Dio();
       dio.options.headers["Authorization"]= 'Bearer ' +await user.getToken();
             final response =
-                await dio.post('${IP_ADDRESS}create_bien', data: this.toJson());
+                await dio.post('${IP_ADDRESS}create_NonEtiqu', data: this.toJson());
 
             if (response.toString() == "true") {
               db.rawUpdate(
-                  'UPDATE Bien_materiel SET etat = ${MODE_SCAN} where code_bar = \'${this.code_bar}\' ');
+                  'UPDATE Non_Etiquete SET etat = ${MODE_SCAN} where num_serie = \'${this.num_serie}\' ');
               return true;
             } else {
               return false;
@@ -174,7 +175,7 @@ class Bien_materiel {
           }
         } else {
           db.rawUpdate(
-              'UPDATE Bien_materiel SET etat = ${MODE_SCAN} where code_bar = \'${this.code_bar}\' ');
+              'UPDATE Non_Etiquete SET etat = ${MODE_SCAN} where num_serie = \'${this.num_serie}\' ');
           return true;
         }
       }
@@ -184,63 +185,80 @@ class Bien_materiel {
   }
 
   Map<String, dynamic> toJson() => {
-        "code_bar": code_bar,
+        "num_serie": num_serie,
         "codelocalisation": code_localisation,
         "code_cop": CODE_COP,
         "etat": etat,
         "date_scan": date_scan,
         "matricule": matricule,
         "stockage": stockage,
-        "inv_id":inv_id
+        "marque":marque,
+        "modele":modele,
+        "nature":nature,
+        "nombre":nombre
       };
-  static Future<List<Bien_materiel>> history() async {
+  static Future<List<Non_Etiquete>> history() async {
     final database = openDatabase(join(await getDatabasesPath(), DBNAME));
     final db = await database;
 
-    final List<Map<String, dynamic>> maps = await db.query("Bien_materiel");
+    final List<Map<String, dynamic>> maps = await db.query("Non_Etiquete");
 
     return List.generate(maps.length, (i) {
-      return Bien_materiel(
-        maps[i]["code_bar"],
+      return Non_Etiquete(
+        maps[i]["num_serie"],
         maps[i]["etat"],
         maps[i]["date_scan"],
         maps[i]["code_localisation"],
         maps[i]["stockage"],
         maps[i]["CODE_COP"],
         maps[i]["matricule"],
-        maps[i]["inv_id"]
+        maps[i]["marque"],
+        maps[i]["modele"],
+        maps[i]["nature"],
+        maps[i]["nombre"]
       );
     });
   }
 
-  static Future<List<Bien_materiel>> synchonized_objects() async {
+  static Future<List<Non_Etiquete>> synchonized_objects() async {
     final database = openDatabase(join(await getDatabasesPath(), DBNAME));
     final db = await database;
 
     final List<Map<String, dynamic>> maps =
-        await db.query("Bien_materiel where stockage  = 0 ");
+        await db.query("Non_Etiquete where stockage  = 0 ");
 
     return List.generate(maps.length, (i) {
-      return Bien_materiel(
-        maps[i]["code_bar"],
+      return Non_Etiquete(
+        maps[i]["num_serie"],
         maps[i]["etat"],
         maps[i]["date_scan"],
         maps[i]["code_localisation"],
         maps[i]["stockage"],
         maps[i]["CODE_COP"],
         maps[i]["matricule"],
-        maps[i]["inv_id"]
+        maps[i]["marque"],
+        maps[i]["modele"],
+        maps[i]["nature"],
+        maps[i]["nombre"]
+
       );
     });
   }
 
   String toString() {
-    return '''{ "code_bar": "$code_bar",
+    return '''{ "num_serie": "$num_serie",
             "codelocalisation": "$code_localisation",
             "code_cop": "$CODE_COP",
             "etat": $etat,
             "date_scan": "$date_scan",
             "matricule": "$matricule",
-            "stockage": $stockage }''';
+            "stockage": $stockage,
+             "marque": "$marque" ,
+            "modele": "$modele" ,
+            "nature" : "$nature" ,
+            "nombre" : $nombre
+
+            
+            }''';
   }
 }
